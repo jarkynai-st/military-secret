@@ -21,3 +21,21 @@ class Dossier(models.Model):
 
     def __str__(self):
         return self.full_name + '' + self.department
+
+
+class Car(models.Model):
+    car_model = models.CharField(max_length=20)
+    year = models.IntegerField()
+    country = models.CharField(max_length=20)
+    color = models.CharField(max_length=15)
+    mark = models.CharField(max_length=15)
+    wheel_type = models.CharField(choices=(
+        ('RH','right_hand'),
+        ('LH','left_hand')
+    ),max_length=10)
+    car_type = models.CharField(choices=(
+        ('private','private'),
+        ('service','service')
+    ),max_length=10)
+    car_number = models.IntegerField()
+    dossier = models.ForeignKey(Dossier,on_delete=models.CASCADE,blank=True,null=True,related_name='cars')

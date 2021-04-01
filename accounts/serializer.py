@@ -3,23 +3,37 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from .models import *
 
+
+class CarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Car
+        fields = ['id','car_model','year','country','color','mark',
+                  'wheel_type','car_type','car_number']
+
+
 class DossierSerializer(serializers.ModelSerializer):
+
+    cars = CarSerializer(many=True,required=False)
 
     class Meta:
         model = Dossier
         fields = ['id','image','full_name','address',
-                  'department','date_birth','phone','experience']
+                  'department','date_birth','phone','experience','cars']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+
     confirm_password = serializers.CharField(write_only=True)
     dossier = DossierSerializer()
+
     class Meta:
         model = User
         fields = ['username','email','password','confirm_password','dossier']
 
     def create(self, validated_data):
         dossier = validated_data.pop('dossier')
+        cars_data = dossier.pop('cars')
         password = validated_data.pop('password')
         confirm_password = validated_data.pop('confirm_password')
         if confirm_password == password:
@@ -35,7 +49,13 @@ class RegisterSerializer(serializers.ModelSerializer):
                 to_list.append(super.email)
             email = EmailMessage(subject=subject,body=body,to=to_list)
             email.send()
-            Dossier.objects.create(user=user,**dossier)
+            dossier_data = Dossier.objects.create(user=user,**dossier)
+            print(cars_data)
+            for cars in cars_data:
+                Car.objects.create(dossier=dossier_data,**cars)
             return user
         else:
             raise ValidationError("Passwords don't match!")
+
+
+

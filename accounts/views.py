@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializer import *
 from rest_framework import views, viewsets, generics, status
@@ -17,3 +18,15 @@ class RegisterView(views.APIView):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors)
+
+
+class CarView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,*args,**kwargs):
+        if request. user.is_superuser:
+            cars = Car.objects.all()
+        else:
+            cars = Car.objects.filter(dossier=request.user.dossier)
+        serializer = CarSerializer(cars,many=True)
+        return Response(serializer.data)
